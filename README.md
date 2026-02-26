@@ -1,9 +1,9 @@
-# Task 1 – Personal Portfolio Website
+Task 1 – Personal Portfolio Website
 
-## 📌 Description
+Description
 Developed a responsive personal portfolio website using HTML and CSS.
 
-## ✨ Features
+Features
 - Header with Name & Tagline
 - About Section with Image
 - Skills Section
@@ -12,11 +12,5 @@ Developed a responsive personal portfolio website using HTML and CSS.
 - Contact Information
 - Footer Section
 
-## 🛠 Technologies Used
+Technologies Used
 HTML5, CSS3
-
-## 📷 Screenshots
-(Add screenshots here)
-
-## 🌐 Live Demo
-(Add GitHub Pages / Netlify link)
