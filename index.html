@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Portfolio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2em;
+        }
+
+        nav {
+            background: #333;
+            padding: 10px 0;
+            position: sticky;
+            top: 0;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        nav a:hover {
+            color: #667eea;
+        }
+
+        section {
+            padding: 60px 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        section h2 {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            color: #667eea;
+        }
+
+        #about {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+
+        #about img {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .skill {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .project {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .project:hover {
+            transform: translateY(-5px);
+        }
+
+        .project img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .project-content {
+            padding: 20px;
+        }
+
+        .project h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .resume-link {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .resume-link:hover {
+            background: #764ba2;
+        }
+
+        #contact {
+            text-align: center;
+        }
+
+        .contact-info {
+            font-size: 1.1em;
+            margin: 20px 0;
+        }
+
+        footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 60px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <h1>ADABALA DEEPAK</h1>
+        <p>Web Developer & Designer</p>
+    </header>
+
+    <!-- Navigation -->
+    <nav>
+        <ul>
+            <li><a href="#about">About</a></li>
+            <li><a href="#skills">Skills</a></li>
+            <li><a href="#projects">Projects</a></li>
+            <li><a href="#resume">Resume</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- About Section -->
+    <section id="about">
+        <img src="profilephoto.png" alt="Your Photo">
+        <div>
+            <h2>About Me</h2>
+            <p>Hello! I'm a passionate web developer with experience in HTML, CSS, and JavaScript. I love creating responsive and user-friendly websites. With a background in computer science and a keen eye for design, I aim to deliver high-quality digital solutions.</p>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills">
+        <h2>Skills</h2>
+        <div class="skills-grid">
+            <img src="html5logo.jpg" alt="HTML5 Logo" style="width: 50px; height: 50px; margin-bottom: 10px;">
+            <img src="css3logo.png" alt="CSS3 Logo" style="width: 50px; height: 50px; margin-bottom: 10px;">   
+            <img src="Javascriptlogo.png" alt="JavaScript Logo" style="width: 50px; height: 50px; margin-bottom: 10px;">
+            <img src="githublogo.png" alt="GitHub Logo" style="width: 50px; height: 50px; margin-bottom: 10px;">
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects">
+        <h2>Projects</h2>
+        <div class="projects-grid">
+            <div class="project">
+                <img src="https://via.placeholder.com/300x200" alt="Project 1">
+                <div class="project-content">
+                    <h3>Portfolio Website</h3>
+                    <p>A personal portfolio showcasing my skills, projects, and experience as a web developer.</p>
+                </div>
+            </div>
+            <div class="project">
+                <img src="https://via.placeholder.com/300x200" alt="Project 2">
+                <div class="project-content">
+                    <h3>Online Quiz Maker</h3>
+                    <p>A simple online quiz application allowing users to create and take quizzes on various topics.</p>
+                </div>
+            </div>
+            <div class="project">
+                <img src="https://via.placeholder.com/300x200" alt="Project 3">
+                <div class="project-content">
+                    <h3>E-Commerce Website</h3>
+                    <p>A fully responsive e-commerce site built with HTML, CSS, and JavaScript featuring product filtering and a shopping cart.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Achievements and Certifications -->
+    <section id="achievements">
+        <h2>🏆Achievements and Certifications</h2>
+        <div class="achievements-grid">
+            <div class="achievement">
+                <h3>AWS Training and Certification  </h3>
+                <p>Introduction to Generative AI - Art of the Possible
+                   Generative AI For Executives</p>
+            </div>
+        </div>
+            <div class="achievement">
+                <h3>Infosys Springboard</h3>
+                <p>Introduction to Data Science
+                   Introduction to Natural Language Processing.</p>
+            </div>
+        </div>
+    </div>
+    </section>
+
+    <!-- Resume Section -->
+    <section id="resume">
+        <h2>📄Resume</h2>
+        <p>Download my resume to learn more about my experience and qualifications.</p>
+        <a href="resume.pdf" class="resume-link" download>Download Resume</a>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact">
+        <h2>📞Contact</h2>
+        <div class="contact-info">
+            <p><strong>Email:</strong> deepakadabala16@gmail.com</p>
+            <p><strong>Phone:</strong> +91 8639060226</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 ADABALA DEEPAK. All rights reserved.</p>
+    </footer>
+</body>
+</html>
