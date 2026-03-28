@@ -1,0 +1,2193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QuizCraft — Online Quiz Maker</title>
+
+    <!-- Google Fonts: Nunito for headings, Poppins for body text -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    />
+
+    <style>
+
+        /* =============================================
+           RESET & ROOT VARIABLES
+        ============================================= */
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            /* Brand colours */
+            --teal:         #2EC4B6;
+            --teal-light:   #4DD9CC;
+            --teal-dark:    #1A9E93;
+
+            /* Surface colours */
+            --bg:     #E8F9F7;
+            --white:  #FFFFFF;
+            --card:   #FFFFFF;
+
+            /* Text colours */
+            --text:   #1B2B34;
+            --muted:  #7A9EA8;
+            --border: #C8ECEA;
+
+            /* Accent colours */
+            --orange: #FF9F1C;
+            --coral:  #FF6B6B;
+            --yellow: #FFE66D;
+            --green:  #6BCB77;
+
+            /* Shared values */
+            --radius:       18px;
+            --shadow:       0 4px 24px rgba(46, 196, 182, 0.13);
+            --shadow-hover: 0 8px 36px rgba(46, 196, 182, 0.22);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+
+        /* =============================================
+           BACKGROUND: DECORATIVE BLOBS
+           These soft blurred circles sit behind everything
+           to add depth and a modern feel to the page.
+        ============================================= */
+
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.18;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .blob-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--teal);
+            top: -100px;
+            left: -100px;
+        }
+
+        .blob-2 {
+            width: 300px;
+            height: 300px;
+            background: var(--orange);
+            bottom: -80px;
+            right: -80px;
+        }
+
+        .blob-3 {
+            width: 200px;
+            height: 200px;
+            background: var(--yellow);
+            top: 40%;
+            left: 60%;
+        }
+
+        /* Subtle dot grid pattern over the whole page */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background-image: radial-gradient(
+                circle,
+                rgba(46, 196, 182, 0.18) 1.5px,
+                transparent 1.5px
+            );
+            background-size: 28px 28px;
+        }
+
+
+        /* =============================================
+           SCREEN SYSTEM
+           Each "page" is a .screen div.
+           Only the one with .active is visible.
+        ============================================= */
+
+        .screen {
+            display: none;
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Slide-up fade animation when a screen becomes active */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .screen.active .container {
+            animation: fadeUp 0.4s ease;
+        }
+
+        /* Centred content wrapper with a comfortable max width */
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 32px 20px;
+            width: 100%;
+        }
+
+
+        /* =============================================
+           TOP NAVIGATION BAR
+        ============================================= */
+
+        .nav {
+            background: var(--white);
+            border-bottom: 2px solid var(--border);
+            padding: 0 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 12px rgba(46, 196, 182, 0.08);
+        }
+
+        .nav-inner {
+            max-width: 700px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+        }
+
+        .logo {
+            font-family: 'Nunito', sans-serif;
+            font-weight: 900;
+            font-size: 1.3rem;
+            color: var(--teal);
+            letter-spacing: -0.5px;
+        }
+
+        /* The "Craft" part of the logo gets the orange accent */
+        .logo span {
+            color: var(--orange);
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .nav-user {
+            font-size: 0.85rem;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+
+        /* =============================================
+           BUTTONS
+           All buttons extend the base .btn class.
+        ============================================= */
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 11px 22px;
+            border-radius: 99px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        /* Filled teal — the main call-to-action */
+        .btn-primary {
+            background: var(--teal);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(46, 196, 182, 0.35);
+        }
+
+        .btn-primary:hover {
+            background: var(--teal-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 196, 182, 0.45);
+        }
+
+        /* Transparent with a teal border */
+        .btn-outline {
+            background: transparent;
+            color: var(--teal);
+            border: 2px solid var(--teal);
+        }
+
+        .btn-outline:hover {
+            background: var(--teal);
+            color: #fff;
+        }
+
+        /* Orange filled */
+        .btn-orange {
+            background: var(--orange);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(255, 159, 28, 0.3);
+        }
+
+        .btn-orange:hover {
+            background: #e8900a;
+            transform: translateY(-2px);
+        }
+
+        /* Light teal background, teal text */
+        .btn-ghost {
+            background: rgba(46, 196, 182, 0.1);
+            color: var(--teal);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(46, 196, 182, 0.2);
+        }
+
+        /* Danger / destructive actions */
+        .btn-danger {
+            background: var(--coral);
+            color: #fff;
+        }
+
+        /* Size and layout modifiers */
+        .btn-sm   { padding: 8px 16px; font-size: 0.82rem; }
+        .btn-full { width: 100%; justify-content: center; }
+
+
+        /* =============================================
+           CARD COMPONENT
+        ============================================= */
+
+        .card {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1.5px solid var(--border);
+            overflow: hidden;
+        }
+
+        .card-body {
+            padding: 28px;
+        }
+
+
+        /* =============================================
+           FORM ELEMENTS
+        ============================================= */
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--teal-dark);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            background: var(--bg);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 11px 14px;
+            color: var(--text);
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(46, 196, 182, 0.15);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        .error-msg {
+            color: var(--coral);
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+
+
+        /* =============================================
+           HOME SCREEN
+        ============================================= */
+
+        .home-hero {
+            text-align: center;
+            padding: 50px 0 36px;
+        }
+
+        .home-hero h1 {
+            font-family: 'Nunito', sans-serif;
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 900;
+            line-height: 1.15;
+            color: var(--text);
+        }
+
+        /* The italic highlighted word in the headline */
+        .home-hero h1 em {
+            font-style: normal;
+            color: var(--teal);
+        }
+
+        .home-hero p {
+            color: var(--muted);
+            font-size: 1rem;
+            margin-top: 12px;
+            line-height: 1.6;
+            max-width: 460px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .home-btns {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            margin-top: 28px;
+            flex-wrap: wrap;
+        }
+
+        /* Two-column feature cards */
+        .home-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 44px;
+        }
+
+        @media (max-width: 520px) {
+            .home-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .home-card {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px 22px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            text-align: center;
+        }
+
+        .home-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--teal);
+        }
+
+        .home-card .hc-icon {
+            font-size: 2.4rem;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .home-card h3 {
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 800;
+        }
+
+        .home-card p {
+            color: var(--muted);
+            font-size: 0.87rem;
+            margin-top: 6px;
+            line-height: 1.5;
+        }
+
+        .home-card .hc-tag {
+            display: inline-block;
+            margin-top: 14px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 99px;
+        }
+
+        .tag-teal   { background: rgba(46, 196, 182, 0.12); color: var(--teal); }
+        .tag-orange { background: rgba(255, 159, 28, 0.12); color: var(--orange); }
+
+        /* Stats row: Quizzes / Questions / Attempts */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .stat-box {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            padding: 18px 12px;
+            text-align: center;
+        }
+
+        .stat-num {
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--teal);
+        }
+
+        .stat-label {
+            font-size: 0.78rem;
+            color: var(--muted);
+            font-weight: 600;
+            margin-top: 3px;
+        }
+
+
+        /* =============================================
+           AUTH SCREEN (Sign In / Register)
+        ============================================= */
+
+        .auth-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            padding: 20px;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 420px;
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1.5px solid var(--border);
+            padding: 36px 32px;
+        }
+
+        .auth-title {
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.7rem;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .auth-sub {
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-bottom: 26px;
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.88rem;
+            color: var(--muted);
+        }
+
+        .auth-toggle a {
+            color: var(--teal);
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .auth-toggle a:hover {
+            text-decoration: underline;
+        }
+
+        /* "or" horizontal divider */
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 18px 0;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+
+        /* =============================================
+           QUIZ LIST SCREEN
+        ============================================= */
+
+        .page-header {
+            margin-bottom: 28px;
+        }
+
+        .page-header h2 {
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.7rem;
+            font-weight: 900;
+        }
+
+        .page-header p {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .page-header-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            flex: 1;
+        }
+
+        .quiz-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .quiz-item {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            cursor: pointer;
+            transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+        }
+
+        .quiz-item:hover {
+            border-color: var(--teal);
+            transform: translateX(4px);
+            box-shadow: var(--shadow);
+        }
+
+        .qi-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .qi-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+        .qi-info h3 {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .qi-info p {
+            font-size: 0.82rem;
+            color: var(--muted);
+            margin-top: 3px;
+        }
+
+        .qi-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        /* Small pill-shaped label */
+        .badge {
+            padding: 5px 13px;
+            border-radius: 99px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .badge-teal   { background: rgba(46, 196, 182, 0.13); color: var(--teal-dark); }
+        .badge-orange { background: rgba(255, 159, 28, 0.13); color: var(--orange); }
+        .badge-green  { background: rgba(107, 203, 119, 0.15); color: #3a9744; }
+
+        /* Shown when search returns no results */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+
+        .empty-state .es-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+
+        .empty-state p {
+            font-size: 0.95rem;
+            margin-bottom: 18px;
+        }
+
+
+        /* =============================================
+           CREATE QUIZ SCREEN
+        ============================================= */
+
+        .create-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        /* Circular back-arrow button */
+        .back-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .back-btn:hover {
+            background: var(--teal);
+            border-color: var(--teal);
+            color: #fff;
+        }
+
+        /* Each question in the creation form is wrapped in a .q-block */
+        .q-block {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px;
+            margin-bottom: 14px;
+            position: relative;
+        }
+
+        .q-block-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .q-num {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--teal);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+        }
+
+        /* Two-column grid for the A / B / C / D option inputs */
+        .opts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        @media (max-width: 480px) {
+            .opts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .opt-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .opt-letter {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--muted);
+            width: 18px;
+            flex-shrink: 0;
+        }
+
+        /* Row to pick which option is the correct answer */
+        .correct-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px dashed var(--border);
+        }
+
+        .correct-row label {
+            margin: 0;
+            text-transform: none;
+            font-size: 0.85rem;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .correct-row select {
+            width: auto;
+            padding: 7px 12px;
+            font-size: 0.85rem;
+        }
+
+        /* Dashed "add question" button at the bottom */
+        .add-q-btn {
+            width: 100%;
+            padding: 14px;
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            background: transparent;
+            color: var(--muted);
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .add-q-btn:hover {
+            border-color: var(--teal);
+            color: var(--teal);
+            background: rgba(46, 196, 182, 0.04);
+        }
+
+
+        /* =============================================
+           TAKE QUIZ SCREEN
+        ============================================= */
+
+        .quiz-take-header {
+            padding: 20px 0 8px;
+        }
+
+        /* Thin horizontal progress bar */
+        .progress-bar-wrap {
+            background: var(--border);
+            border-radius: 99px;
+            height: 6px;
+            margin: 10px 0 6px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--teal);
+            border-radius: 99px;
+            transition: width 0.4s ease;
+        }
+
+        .q-counter {
+            font-size: 0.82rem;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        /* The question text */
+        .q-title {
+            font-family: 'Nunito', sans-serif;
+            font-size: clamp(1.05rem, 3vw, 1.3rem);
+            font-weight: 800;
+            line-height: 1.45;
+            text-align: center;
+            margin: 28px 0;
+            padding: 0 8px;
+        }
+
+        /* Vertical stack of answer option buttons */
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            width: 100%;
+            background: var(--white);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--teal);
+            background: rgba(46, 196, 182, 0.04);
+            transform: translateX(4px);
+        }
+
+        /* Applied after the user picks an answer */
+        .option-btn.selected { border-color: var(--teal);  background: rgba(46, 196, 182, 0.10); }
+        .option-btn.correct  { border-color: var(--green); background: rgba(107, 203, 119, 0.12) !important; }
+        .option-btn.wrong    { border-color: var(--coral); background: rgba(255, 107, 107, 0.10) !important; }
+        .option-btn:disabled { cursor: default; }
+
+        /* The A / B / C / D letter circle */
+        .opt-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            transition: all 0.2s;
+            background: var(--bg);
+            color: var(--muted);
+            border: 1.5px solid var(--border);
+        }
+
+        .option-btn.selected .opt-circle { background: var(--teal);  color: #fff; border-color: var(--teal);  }
+        .option-btn.correct  .opt-circle { background: var(--green); color: #fff; border-color: var(--green); }
+        .option-btn.wrong    .opt-circle { background: var(--coral); color: #fff; border-color: var(--coral); }
+
+        .opt-text {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        /* Feedback strip shown after the user answers */
+        .feedback-banner {
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 16px;
+            display: none;
+        }
+
+        .feedback-banner.show   { display: block; }
+        .feedback-correct { background: rgba(107, 203, 119, 0.15); color: #2e7d32; border: 1.5px solid rgba(107, 203, 119, 0.4); }
+        .feedback-wrong   { background: rgba(255, 107, 107, 0.12); color: #c62828; border: 1.5px solid rgba(255, 107, 107, 0.3); }
+
+        .take-footer {
+            margin-top: 24px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+
+        /* =============================================
+           RESULTS SCREEN
+        ============================================= */
+
+        .results-top {
+            text-align: center;
+            padding: 32px 20px 20px;
+        }
+
+        /* Circular SVG score ring */
+        .score-ring {
+            width: 130px;
+            height: 130px;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+
+        .score-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .score-ring .ring-bg {
+            fill: none;
+            stroke: var(--border);
+            stroke-width: 8;
+        }
+
+        .score-ring .ring-fill {
+            fill: none;
+            stroke: var(--teal);
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+        /* Score percentage in the centre of the ring */
+        .score-num {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Nunito', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--teal);
+        }
+
+        .results-title {
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 900;
+        }
+
+        .results-sub {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-top: 6px;
+        }
+
+        .results-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        /* Per-question answer review */
+        .answer-review {
+            margin-top: 8px;
+        }
+
+        .answer-review h3 {
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 14px;
+        }
+
+        .review-item {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            padding: 16px 18px;
+            margin-bottom: 10px;
+        }
+
+        /* Colour-coded left border */
+        .review-item.r-correct { border-left: 4px solid var(--green); }
+        .review-item.r-wrong   { border-left: 4px solid var(--coral); }
+
+        .ri-q {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .ri-answers {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .ri-ans {
+            font-size: 0.83rem;
+            padding: 4px 10px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            width: fit-content;
+        }
+
+        .ri-correct-ans { background: rgba(107, 203, 119, 0.15); color: #2e7d32; font-weight: 600; }
+        .ri-wrong-ans   { background: rgba(255, 107, 107, 0.12); color: #c62828; font-weight: 600; }
+
+        .ri-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--muted);
+            margin-bottom: 3px;
+        }
+
+        .results-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+
+        /* =============================================
+           TOAST NOTIFICATION
+           Slides up from the bottom of the screen.
+        ============================================= */
+
+        .toast {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--text);
+            color: #fff;
+            padding: 12px 22px;
+            border-radius: 99px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            z-index: 9999;
+            transition: transform 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .toast.show    { transform: translateX(-50%) translateY(0); }
+        .toast.success { background: var(--teal-dark); }
+        .toast.error   { background: var(--coral); }
+
+
+        /* =============================================
+           RESPONSIVE TWEAKS FOR SMALL SCREENS
+        ============================================= */
+
+        @media (max-width: 540px) {
+            .home-btns       { flex-direction: column; align-items: center; }
+            .stats-row       { grid-template-columns: 1fr 1fr; }
+            .results-stats   { grid-template-columns: 1fr 1fr; }
+            .results-actions { flex-direction: column; align-items: center; }
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <!-- Background decorative blobs (purely visual, no interaction) -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+
+    <!-- =============================================
+         TOP NAVIGATION BAR
+    ============================================= -->
+    <nav class="nav">
+        <div class="nav-inner">
+
+            <div class="logo">Quiz<span>Craft</span></div>
+
+            <div class="nav-actions">
+                <!-- Only visible when someone is signed in -->
+                <span class="nav-user" id="navUser" style="display: none;"></span>
+                <button class="btn btn-ghost btn-sm" id="navLogout" style="display: none;" onclick="logout()">
+                    Sign Out
+                </button>
+
+                <!-- Only visible when nobody is signed in -->
+                <button class="btn btn-outline btn-sm" id="navLogin" onclick="showScreen('auth')">
+                    Sign In
+                </button>
+            </div>
+
+        </div>
+    </nav>
+
+
+    <!-- =============================================
+         SCREEN 1: HOME PAGE
+    ============================================= -->
+    <div id="screen-home" class="screen active">
+        <div class="container">
+
+            <div class="home-hero">
+                <h1>Make quizzes that<br><em>actually stick</em> 🎯</h1>
+                <p>Create, share and take beautiful quizzes in minutes. No experience needed.</p>
+
+                <div class="home-btns">
+                    <button class="btn btn-primary" onclick="checkAuthThen('create')">
+                        ✏️ Create a Quiz
+                    </button>
+                    <button class="btn btn-outline" onclick="showScreen('list')">
+                        📋 Browse Quizzes
+                    </button>
+                </div>
+            </div>
+
+            <!-- Live counters -->
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="stat-num" id="statQuizzes">0</div>
+                    <div class="stat-label">Quizzes</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num" id="statQuestions">0</div>
+                    <div class="stat-label">Questions</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num" id="statTaken">0</div>
+                    <div class="stat-label">Attempts</div>
+                </div>
+            </div>
+
+            <!-- Feature highlight cards -->
+            <div class="home-cards" style="margin-top: 28px;">
+                <div class="home-card" onclick="checkAuthThen('create')">
+                    <span class="hc-icon">🛠️</span>
+                    <h3>Create a Quiz</h3>
+                    <p>Build multi-choice quizzes with instant feedback and scoring</p>
+                    <span class="hc-tag tag-teal">For creators</span>
+                </div>
+
+                <div class="home-card" onclick="showScreen('list')">
+                    <span class="hc-icon">🎓</span>
+                    <h3>Take a Quiz</h3>
+                    <p>Browse available quizzes and test your knowledge right now</p>
+                    <span class="hc-tag tag-orange">For learners</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- =============================================
+         SCREEN 2: AUTH — SIGN IN / REGISTER
+    ============================================= -->
+    <div id="screen-auth" class="screen">
+        <div class="auth-wrap">
+            <div class="auth-card">
+
+                <div class="auth-title" id="authTitle">Welcome back 👋</div>
+                <div class="auth-sub"   id="authSub">Sign in to your QuizCraft account</div>
+
+                <!-- Name field is only shown in register mode -->
+                <div id="authRegFields" style="display: none;">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="authName" placeholder="Jane Smith" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="authEmail" placeholder="you@example.com" />
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="authPass" placeholder="••••••••" />
+                </div>
+
+                <!-- Inline error message shown on failed validation -->
+                <div id="authError" class="error-msg" style="margin-bottom: 12px; display: none;"></div>
+
+                <button class="btn btn-primary btn-full" id="authSubmit" onclick="handleAuth()">
+                    Sign In
+                </button>
+
+                <div class="auth-divider">or</div>
+
+                <button class="btn btn-ghost btn-full" onclick="guestLogin()">
+                    👤 Continue as Guest
+                </button>
+
+                <div class="auth-toggle">
+                    <span id="authToggleText">Don't have an account?</span>
+                    <a onclick="toggleAuthMode()" id="authToggleLink"> Register</a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- =============================================
+         SCREEN 3: QUIZ LISTING
+    ============================================= -->
+    <div id="screen-list" class="screen">
+        <div class="container">
+
+            <div class="page-header-row">
+                <div class="page-header">
+                    <h2>📋 Browse Quizzes</h2>
+                    <p>Pick a quiz and test your knowledge</p>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="checkAuthThen('create')">
+                    + Create
+                </button>
+            </div>
+
+            <div class="search-bar">
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="🔍  Search quizzes..."
+                    oninput="renderList()"
+                />
+            </div>
+
+            <!-- Quiz cards are injected here by renderList() -->
+            <div class="quiz-list" id="quizList"></div>
+
+        </div>
+    </div>
+
+
+    <!-- =============================================
+         SCREEN 4: CREATE QUIZ
+    ============================================= -->
+    <div id="screen-create" class="screen">
+        <div class="container">
+
+            <div class="create-header">
+                <div class="back-btn" onclick="showScreen('list')">←</div>
+                <div>
+                    <h2 style="font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 1.5rem;">
+                        Create a Quiz
+                    </h2>
+                    <p style="color: var(--muted); font-size: 0.85rem;">
+                        Add questions and multiple-choice answers
+                    </p>
+                </div>
+            </div>
+
+            <!-- Quiz metadata -->
+            <div class="card">
+                <div class="card-body">
+
+                    <div class="form-group">
+                        <label>Quiz Title *</label>
+                        <input type="text" id="quizTitle" placeholder="e.g. World Geography Trivia" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="quizDesc" placeholder="What is this quiz about?"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="quizCategory">
+                            <option>General Knowledge</option>
+                            <option>Science</option>
+                            <option>History</option>
+                            <option>Geography</option>
+                            <option>Technology</option>
+                            <option>Sports</option>
+                            <option>Entertainment</option>
+                            <option>Math</option>
+                        </select>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Question blocks are dynamically added here -->
+            <div style="margin-top: 20px;">
+                <div id="questionsContainer"></div>
+                <button class="add-q-btn" onclick="addQuestion()">＋ Add Question</button>
+            </div>
+
+            <div style="margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="saveQuiz()">💾 Save Quiz</button>
+                <button class="btn btn-outline" onclick="showScreen('list')">Cancel</button>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- =============================================
+         SCREEN 5: TAKE A QUIZ
+    ============================================= -->
+    <div id="screen-take" class="screen">
+        <div class="container">
+
+            <div class="quiz-take-header">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div class="back-btn" onclick="showScreen('list')">←</div>
+                    <div class="q-counter" id="qCounter">Question 1 of 5</div>
+                </div>
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar" id="progressBar" style="width: 0%;"></div>
+                </div>
+                <div style="font-size: 0.82rem; font-weight: 700; color: var(--muted);" id="quizTakeTitle"></div>
+            </div>
+
+            <!-- Question text -->
+            <div class="q-title" id="questionText"></div>
+
+            <!-- Answer option buttons (injected by renderQuestion) -->
+            <div class="options-list" id="optionsList"></div>
+
+            <!-- Correct / wrong feedback shown after answering -->
+            <div class="feedback-banner" id="feedbackBanner"></div>
+
+            <div class="take-footer">
+                <button class="btn btn-primary" id="nextBtn" style="display: none;" onclick="nextQuestion()">
+                    Next →
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- =============================================
+         SCREEN 6: QUIZ RESULTS
+    ============================================= -->
+    <div id="screen-results" class="screen">
+        <div class="container">
+
+            <div class="results-top">
+
+                <!-- Animated circular score ring -->
+                <div class="score-ring">
+                    <svg viewBox="0 0 120 120" width="130" height="130">
+                        <circle class="ring-bg"   cx="60" cy="60" r="52" />
+                        <circle class="ring-fill" cx="60" cy="60" r="52"
+                            id="ringFill"
+                            stroke-dasharray="327"
+                            stroke-dashoffset="327"
+                        />
+                    </svg>
+                    <div class="score-num" id="scorePct"></div>
+                </div>
+
+                <div class="results-title" id="resultsTitle"></div>
+                <div class="results-sub"   id="resultsSub"></div>
+
+            </div>
+
+            <!-- Correct / wrong / total breakdown -->
+            <div class="results-stats">
+                <div class="stat-box">
+                    <div class="stat-num" id="resCorrect" style="color: var(--green);">0</div>
+                    <div class="stat-label">Correct</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num" id="resWrong" style="color: var(--coral);">0</div>
+                    <div class="stat-label">Wrong</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num" id="resTotal">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+            </div>
+
+            <!-- Per-question review (injected by showResults) -->
+            <div class="answer-review">
+                <h3>Answer Review</h3>
+                <div id="reviewList"></div>
+            </div>
+
+            <div class="results-actions">
+                <button class="btn btn-primary" onclick="retakeQuiz()">🔁 Retake Quiz</button>
+                <button class="btn btn-outline" onclick="showScreen('list')">📋 All Quizzes</button>
+                <button class="btn btn-ghost"   onclick="showScreen('home')">🏠 Home</button>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- Slide-up notification toast -->
+    <div class="toast" id="toast"></div>
+
+
+    <!-- =============================================
+         JAVASCRIPT
+    ============================================= -->
+    <script>
+
+        // =============================================
+        // APPLICATION STATE
+        // A single object that holds everything the
+        // app needs to remember while it's running.
+        // =============================================
+
+        const state = {
+            currentUser:    null,   // { name, email } when signed in, or null
+            quizzes:        [],     // all quiz objects
+            currentQuiz:    null,   // the quiz currently being taken
+            currentQIndex:  0,      // which question the user is on (0-based)
+            userAnswers:    [],     // { chosen, correct, isCorrect } per question
+            score:          0,      // correct answers in the current attempt
+            attempts:       0,      // total quiz attempts across all sessions
+            isRegister:     false,  // whether the auth form is in register mode
+            _pendingScreen: null    // screen to redirect to after a successful login
+        };
+
+        // Visual helpers for the quiz list (cycles through these as new quizzes are added)
+        const QUIZ_ICONS  = ['🧠', '🌍', '🔬', '📚', '💡', '🎯', '🏆', '🎓', '🌟', '🔢'];
+        const QUIZ_COLORS = ['#2EC4B6', '#FF9F1C', '#FF6B6B', '#6BCB77', '#4361EE', '#9B5DE5', '#F15BB5'];
+
+        // Incrementing counter used to give each question block a unique ID
+        let questionIdCounter = 0;
+
+
+        // =============================================
+        // INITIALISATION
+        // Called once when the page loads.
+        // =============================================
+
+        function init() {
+            // Try to restore any saved data from the previous session
+            const saved = localStorage.getItem('qc_data');
+
+            if (saved) {
+                const data      = JSON.parse(saved);
+                state.quizzes   = data.quizzes     || [];
+                state.attempts  = data.attempts    || 0;
+                state.currentUser = data.currentUser || null;
+            }
+
+            // If no quizzes exist yet, load a few demo ones so the
+            // app doesn't start completely empty
+            if (!state.quizzes.length) {
+                seedDemoData();
+            }
+
+            updateNav();
+            updateStats();
+            renderList();
+        }
+
+
+        // Pre-load three sample quizzes so new users have something to explore right away
+        function seedDemoData() {
+            state.quizzes = [
+                {
+                    id: 1,
+                    title: "World Geography",
+                    desc: "Test your knowledge of countries and capitals",
+                    category: "Geography",
+                    author: "QuizCraft Team",
+                    createdAt: "2024-01-10",
+                    questions: [
+                        {
+                            q: "What is the capital of Japan?",
+                            opts: ["Beijing", "Seoul", "Tokyo", "Bangkok"],
+                            correct: 2
+                        },
+                        {
+                            q: "Which is the longest river in the world?",
+                            opts: ["Amazon", "Nile", "Yangtze", "Mississippi"],
+                            correct: 1
+                        },
+                        {
+                            q: "Which country has the most natural lakes?",
+                            opts: ["Brazil", "USA", "Russia", "Canada"],
+                            correct: 3
+                        }
+                    ]
+                },
+                {
+                    id: 2,
+                    title: "Basic Science Quiz",
+                    desc: "Fun science questions for everyone",
+                    category: "Science",
+                    author: "QuizCraft Team",
+                    createdAt: "2024-01-12",
+                    questions: [
+                        {
+                            q: "What is the chemical symbol for water?",
+                            opts: ["WO", "H2O", "HO2", "W2O"],
+                            correct: 1
+                        },
+                        {
+                            q: "How many planets are in our solar system?",
+                            opts: ["7", "8", "9", "10"],
+                            correct: 1
+                        },
+                        {
+                            q: "What gas do plants absorb from the atmosphere?",
+                            opts: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"],
+                            correct: 2
+                        },
+                        {
+                            q: "What is the approximate speed of light?",
+                            opts: ["150,000 km/s", "300,000 km/s", "450,000 km/s", "600,000 km/s"],
+                            correct: 1
+                        }
+                    ]
+                },
+                {
+                    id: 3,
+                    title: "Tech Trivia",
+                    desc: "How well do you know technology?",
+                    category: "Technology",
+                    author: "QuizCraft Team",
+                    createdAt: "2024-01-15",
+                    questions: [
+                        {
+                            q: "What does 'HTTP' stand for?",
+                            opts: [
+                                "HyperText Transfer Protocol",
+                                "High Tech Transfer Protocol",
+                                "HyperText Transmission Process",
+                                "High Transfer Text Protocol"
+                            ],
+                            correct: 0
+                        },
+                        {
+                            q: "Who co-founded Apple Inc.?",
+                            opts: ["Bill Gates", "Elon Musk", "Steve Jobs", "Jeff Bezos"],
+                            correct: 2
+                        },
+                        {
+                            q: "What is the binary representation of the number 5?",
+                            opts: ["011", "101", "110", "111"],
+                            correct: 1
+                        }
+                    ]
+                }
+            ];
+
+            save();
+        }
+
+
+        // Write current state to localStorage so it survives page refreshes
+        function save() {
+            localStorage.setItem('qc_data', JSON.stringify({
+                quizzes:     state.quizzes,
+                attempts:    state.attempts,
+                currentUser: state.currentUser
+            }));
+        }
+
+
+        // =============================================
+        // SCREEN NAVIGATION
+        // Hide all screens, show the one requested,
+        // and run any setup that screen needs.
+        // =============================================
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(function(screen) {
+                screen.classList.remove('active');
+            });
+
+            document.getElementById('screen-' + id).classList.add('active');
+            window.scrollTo(0, 0);
+
+            // Screen-specific setup
+            if (id === 'list')   renderList();
+            if (id === 'create') initCreate();
+            if (id === 'home')   updateStats();
+        }
+
+
+        // =============================================
+        // AUTHENTICATION
+        // =============================================
+
+        // Refresh the nav bar to reflect the current login state
+        function updateNav() {
+            const user = state.currentUser;
+
+            document.getElementById('navUser').style.display   = user ? ''     : 'none';
+            document.getElementById('navLogout').style.display = user ? ''     : 'none';
+            document.getElementById('navLogin').style.display  = user ? 'none' : '';
+
+            if (user) {
+                document.getElementById('navUser').textContent = '👤 ' + user.name;
+            }
+        }
+
+        // If the user isn't signed in, send them to the auth screen
+        // and remember where to redirect them afterwards
+        function checkAuthThen(screenId) {
+            if (state.currentUser) {
+                showScreen(screenId);
+            } else {
+                state._pendingScreen = screenId;
+                showScreen('auth');
+            }
+        }
+
+        // Flip between Sign In and Register mode
+        function toggleAuthMode() {
+            state.isRegister = !state.isRegister;
+
+            const isReg = state.isRegister;
+
+            document.getElementById('authTitle').textContent  = isReg ? 'Create account 🎉'             : 'Welcome back 👋';
+            document.getElementById('authSub').textContent    = isReg ? 'Join QuizCraft today'           : 'Sign in to your QuizCraft account';
+            document.getElementById('authSubmit').textContent = isReg ? 'Register'                      : 'Sign In';
+
+            document.getElementById('authRegFields').style.display  = isReg ? 'block' : 'none';
+            document.getElementById('authToggleText').textContent   = isReg ? 'Already have an account?' : "Don't have an account?";
+            document.getElementById('authToggleLink').textContent   = isReg ? ' Sign In'                 : ' Register';
+
+            document.getElementById('authError').style.display = 'none';
+        }
+
+        function handleAuth() {
+            const email    = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPass').value;
+            const errorEl  = document.getElementById('authError');
+
+            // Simple validation checks
+            if (!email || !password) {
+                errorEl.textContent   = 'Please fill in all fields.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            if (!/\S+@\S+\.\S+/.test(email)) {
+                errorEl.textContent   = 'Enter a valid email address.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            if (password.length < 6) {
+                errorEl.textContent   = 'Password must be at least 6 characters.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            errorEl.style.display = 'none';
+
+            // For register, use what the user typed; for sign-in, derive a name from the email
+            const name = state.isRegister
+                ? (document.getElementById('authName').value.trim() || 'User')
+                : email.split('@')[0];
+
+            state.currentUser = { email, name };
+            save();
+            updateNav();
+
+            toast('Welcome, ' + name + '! 🎉', 'success');
+
+            // Head to the page they originally wanted to visit
+            const next           = state._pendingScreen || 'home';
+            state._pendingScreen = null;
+            showScreen(next);
+        }
+
+        function guestLogin() {
+            state.currentUser = { email: 'guest@quizcraft.app', name: 'Guest' };
+            save();
+            updateNav();
+            toast('Continuing as Guest 👤', 'success');
+
+            const next           = state._pendingScreen || 'home';
+            state._pendingScreen = null;
+            showScreen(next);
+        }
+
+        function logout() {
+            state.currentUser = null;
+            save();
+            updateNav();
+            showScreen('home');
+            toast('Signed out successfully');
+        }
+
+
+        // =============================================
+        // QUIZ LIST
+        // =============================================
+
+        function renderList() {
+            const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase();
+            const listEl     = document.getElementById('quizList');
+
+            if (!listEl) return;
+
+            // Filter by title or category
+            const filtered = state.quizzes.filter(function(quiz) {
+                return quiz.title.toLowerCase().includes(searchTerm)
+                    || quiz.category.toLowerCase().includes(searchTerm);
+            });
+
+            if (!filtered.length) {
+                listEl.innerHTML = `
+                    <div class="empty-state">
+                        <div class="es-icon">🔍</div>
+                        <p>No quizzes found.<br>Try a different search or create one!</p>
+                        <button class="btn btn-primary" onclick="checkAuthThen('create')">+ Create Quiz</button>
+                    </div>
+                `;
+                return;
+            }
+
+            listEl.innerHTML = filtered.map(function(quiz, index) {
+                const icon  = QUIZ_ICONS[index % QUIZ_ICONS.length];
+                const color = QUIZ_COLORS[index % QUIZ_COLORS.length];
+
+                return `
+                    <div class="quiz-item" onclick="startQuiz(${quiz.id})">
+                        <div class="qi-left">
+                            <div class="qi-icon" style="background: ${color}22;">${icon}</div>
+                            <div class="qi-info">
+                                <h3>${quiz.title}</h3>
+                                <p>${quiz.category} · ${quiz.questions.length} questions · by ${quiz.author || 'Anonymous'}</p>
+                            </div>
+                        </div>
+                        <div class="qi-right">
+                            <span class="badge badge-teal">${quiz.questions.length}Q</span>
+                            <button class="btn btn-primary btn-sm">Take →</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+
+        // =============================================
+        // CREATE QUIZ
+        // =============================================
+
+        function initCreate() {
+            // Reset everything so the form is blank
+            questionIdCounter = 0;
+            document.getElementById('quizTitle').value              = '';
+            document.getElementById('quizDesc').value               = '';
+            document.getElementById('questionsContainer').innerHTML = '';
+
+            // Start with two blank question blocks
+            addQuestion();
+            addQuestion();
+        }
+
+        function addQuestion() {
+            questionIdCounter++;
+
+            const n  = questionIdCounter;
+            const id = 'q' + n;
+
+            const block     = document.createElement('div');
+            block.className = 'q-block';
+            block.id        = 'qblock-' + n;
+
+            block.innerHTML = `
+                <div class="q-block-header">
+                    <span class="q-num">Question ${n}</span>
+                    ${n > 1
+                        ? `<button class="btn btn-danger btn-sm" onclick="removeQuestion(${n})">✕ Remove</button>`
+                        : ''
+                    }
+                </div>
+
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label>Question Text *</label>
+                    <textarea id="${id}-text" placeholder="Type your question here..."></textarea>
+                </div>
+
+                <div>
+                    <label>Answer Options *</label>
+                    <div class="opts-grid">
+                        <div class="opt-row">
+                            <span class="opt-letter">A</span>
+                            <input type="text" id="${id}-opt0" placeholder="Option A" />
+                        </div>
+                        <div class="opt-row">
+                            <span class="opt-letter">B</span>
+                            <input type="text" id="${id}-opt1" placeholder="Option B" />
+                        </div>
+                        <div class="opt-row">
+                            <span class="opt-letter">C</span>
+                            <input type="text" id="${id}-opt2" placeholder="Option C" />
+                        </div>
+                        <div class="opt-row">
+                            <span class="opt-letter">D</span>
+                            <input type="text" id="${id}-opt3" placeholder="Option D" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="correct-row">
+                    <label>Correct Answer:</label>
+                    <select id="${id}-correct">
+                        <option value="0">A</option>
+                        <option value="1">B</option>
+                        <option value="2">C</option>
+                        <option value="3">D</option>
+                    </select>
+                </div>
+            `;
+
+            document.getElementById('questionsContainer').appendChild(block);
+        }
+
+        function removeQuestion(n) {
+            const block = document.getElementById('qblock-' + n);
+            if (block) block.remove();
+        }
+
+        function saveQuiz() {
+            const title = document.getElementById('quizTitle').value.trim();
+
+            if (!title) {
+                toast('Please enter a quiz title', 'error');
+                return;
+            }
+
+            // Walk through every question block and collect the data
+            const questions = [];
+            let   allValid  = true;
+
+            document.querySelectorAll('.q-block').forEach(function(block) {
+                const n    = block.id.replace('qblock-', '');
+                const id   = 'q' + n;
+
+                const questionText = document.getElementById(id + '-text')?.value.trim();
+
+                if (!questionText) {
+                    allValid = false;
+                    return;
+                }
+
+                // Collect the four answer options;
+                // fall back to "Option A/B/C/D" if the user left one blank
+                const options = ['A', 'B', 'C', 'D'].map(function(letter, index) {
+                    return document.getElementById(id + '-opt' + index)?.value.trim()
+                        || ('Option ' + letter);
+                });
+
+                const correctIndex = parseInt(
+                    document.getElementById(id + '-correct')?.value || '0'
+                );
+
+                questions.push({
+                    q:       questionText,
+                    opts:    options,
+                    correct: correctIndex
+                });
+            });
+
+            if (!allValid) {
+                toast('Please fill in all question texts', 'error');
+                return;
+            }
+
+            if (!questions.length) {
+                toast('Add at least one question', 'error');
+                return;
+            }
+
+            const newQuiz = {
+                id:        Date.now(),
+                title:     title,
+                desc:      document.getElementById('quizDesc').value.trim() || '',
+                category:  document.getElementById('quizCategory').value,
+                author:    state.currentUser?.name || 'Anonymous',
+                createdAt: new Date().toISOString().split('T')[0],
+                questions: questions
+            };
+
+            // Add to the front of the array so it appears at the top of the list
+            state.quizzes.unshift(newQuiz);
+            save();
+
+            toast('Quiz saved! 🎉', 'success');
+
+            // Short delay so the user sees the success message before navigating
+            setTimeout(function() {
+                showScreen('list');
+            }, 800);
+        }
+
+
+        // =============================================
+        // TAKING A QUIZ
+        // =============================================
+
+        function startQuiz(quizId) {
+            const quiz = state.quizzes.find(function(q) {
+                return q.id === quizId;
+            });
+
+            if (!quiz) return;
+
+            // Reset all quiz-taking state before starting
+            state.currentQuiz   = quiz;
+            state.currentQIndex = 0;
+            state.userAnswers   = [];
+            state.score         = 0;
+
+            showScreen('take');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const quiz     = state.currentQuiz;
+            const question = quiz.questions[state.currentQIndex];
+            const total    = quiz.questions.length;
+            const current  = state.currentQIndex + 1;
+
+            // Update the header counters and progress bar
+            document.getElementById('qCounter').textContent     = 'Question ' + current + ' of ' + total;
+            document.getElementById('quizTakeTitle').textContent = quiz.title;
+            document.getElementById('questionText').textContent  = question.q;
+
+            const progressPercent = ((current - 1) / total) * 100;
+            document.getElementById('progressBar').style.width = progressPercent + '%';
+
+            // Clear the feedback and next button left over from the previous question
+            document.getElementById('feedbackBanner').className  = 'feedback-banner';
+            document.getElementById('feedbackBanner').textContent = '';
+            document.getElementById('nextBtn').style.display     = 'none';
+
+            // Render the four answer buttons
+            const optionLabels = ['A', 'B', 'C', 'D'];
+
+            document.getElementById('optionsList').innerHTML = question.opts.map(
+                function(optionText, index) {
+                    return `
+                        <button class="option-btn" onclick="selectAnswer(${index})" id="opt-${index}">
+                            <div class="opt-circle">${optionLabels[index]}</div>
+                            <span class="opt-text">${optionText}</span>
+                        </button>
+                    `;
+                }
+            ).join('');
+        }
+
+        function selectAnswer(chosenIndex) {
+            const quiz     = state.currentQuiz;
+            const question = quiz.questions[state.currentQIndex];
+
+            // Lock all buttons immediately so the user can't change their mind
+            document.querySelectorAll('.option-btn').forEach(function(btn) {
+                btn.disabled = true;
+            });
+
+            const allButtons = document.querySelectorAll('.option-btn');
+            const isCorrect  = (chosenIndex === question.correct);
+
+            // Highlight the chosen button and the correct answer
+            allButtons[chosenIndex].classList.add('selected');
+            allButtons[question.correct].classList.add('correct');
+
+            if (!isCorrect) {
+                allButtons[chosenIndex].classList.add('wrong');
+            }
+
+            // Save this result for the review screen
+            state.userAnswers.push({
+                chosen:    chosenIndex,
+                correct:   question.correct,
+                isCorrect: isCorrect
+            });
+
+            if (isCorrect) {
+                state.score++;
+            }
+
+            // Show the appropriate feedback message
+            const feedbackEl = document.getElementById('feedbackBanner');
+            feedbackEl.textContent = isCorrect
+                ? '✅ Correct! Well done!'
+                : '❌ Not quite — the correct answer is highlighted in green.';
+            feedbackEl.className = 'feedback-banner show '
+                + (isCorrect ? 'feedback-correct' : 'feedback-wrong');
+
+            // Show the Next button (or See Results on the last question)
+            const nextBtn        = document.getElementById('nextBtn');
+            const isLastQuestion = (state.currentQIndex + 1) >= quiz.questions.length;
+            nextBtn.textContent  = isLastQuestion ? 'See Results 🏆' : 'Next →';
+            nextBtn.style.display = 'flex';
+        }
+
+        function nextQuestion() {
+            state.currentQIndex++;
+
+            if (state.currentQIndex < state.currentQuiz.questions.length) {
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function retakeQuiz() {
+            startQuiz(state.currentQuiz.id);
+        }
+
+
+        // =============================================
+        // RESULTS SCREEN
+        // =============================================
+
+        function showResults() {
+            state.attempts++;
+            save();
+
+            const quiz       = state.currentQuiz;
+            const total      = quiz.questions.length;
+            const score      = state.score;
+            const percentage = Math.round((score / total) * 100);
+
+            showScreen('results');
+
+            // Fill in the score numbers
+            document.getElementById('scorePct').textContent   = percentage + '%';
+            document.getElementById('resCorrect').textContent = score;
+            document.getElementById('resWrong').textContent   = total - score;
+            document.getElementById('resTotal').textContent   = total;
+
+            // Pick an appropriate message based on the score
+            const messages = [
+                'Keep practicing! 💪',
+                'Good effort! 👍',
+                'Well done! 🌟',
+                'Excellent! 🎉',
+                'Perfect score! 🏆'
+            ];
+
+            const messageIndex = percentage < 40 ? 0
+                               : percentage < 60 ? 1
+                               : percentage < 80 ? 2
+                               : percentage < 100 ? 3
+                               : 4;
+
+            document.getElementById('resultsTitle').textContent = messages[messageIndex];
+            document.getElementById('resultsSub').textContent   =
+                'You scored ' + score + ' out of ' + total + ' on "' + quiz.title + '"';
+
+            // Animate the circular ring after a short delay to let the DOM settle
+            setTimeout(function() {
+                const circumference = 327;  // 2 * π * 52 ≈ 327 (the SVG circle's radius is 52)
+                const dashOffset    = circumference - (circumference * percentage / 100);
+                const ringEl        = document.getElementById('ringFill');
+
+                ringEl.style.strokeDashoffset = dashOffset;
+                ringEl.style.stroke = percentage >= 80 ? 'var(--green)'
+                                    : percentage >= 50 ? 'var(--teal)'
+                                    :                    'var(--coral)';
+            }, 200);
+
+            // Build the per-question answer review list
+            const optionLabels = ['A', 'B', 'C', 'D'];
+
+            document.getElementById('reviewList').innerHTML = state.userAnswers.map(
+                function(answer, index) {
+                    const question = quiz.questions[index];
+
+                    return `
+                        <div class="review-item ${answer.isCorrect ? 'r-correct' : 'r-wrong'}">
+                            <div class="ri-q">${index + 1}. ${question.q}</div>
+                            <div class="ri-answers">
+                                ${!answer.isCorrect ? `
+                                    <div class="ri-label">Your answer:</div>
+                                    <span class="ri-ans ri-wrong-ans">
+                                        ✗ ${optionLabels[answer.chosen]}. ${question.opts[answer.chosen]}
+                                    </span>
+                                ` : ''}
+                                <div class="ri-label">Correct answer:</div>
+                                <span class="ri-ans ri-correct-ans">
+                                    ✓ ${optionLabels[answer.correct]}. ${question.opts[answer.correct]}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                }
+            ).join('');
+        }
+
+
+        // =============================================
+        // UTILITY FUNCTIONS
+        // =============================================
+
+        // Refresh the stats counters on the home screen
+        function updateStats() {
+            const totalQuestions = state.quizzes.reduce(function(sum, quiz) {
+                return sum + quiz.questions.length;
+            }, 0);
+
+            document.getElementById('statQuizzes').textContent   = state.quizzes.length;
+            document.getElementById('statQuestions').textContent = totalQuestions;
+            document.getElementById('statTaken').textContent     = state.attempts;
+        }
+
+        // Show a brief pop-up notification that slides up from the bottom
+        function toast(message, type) {
+            const toastEl = document.getElementById('toast');
+
+            toastEl.textContent = message;
+            toastEl.className   = 'toast ' + (type || '');
+            toastEl.classList.add('show');
+
+            setTimeout(function() {
+                toastEl.classList.remove('show');
+            }, 3000);
+        }
+
+
+        // =============================================
+        // START THE APP
+        // =============================================
+        init();
+
+    </script>
+
+</body>
+</html>
