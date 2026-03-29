@@ -115,7 +115,7 @@
             transform: translateY(-5px);
         }
 
-        .project img {
+        .project img, .project video, .project embed {
             width: 100%;
             height: 200px;
             object-fit: cover;
@@ -130,13 +130,13 @@
             margin-bottom: 10px;
         }
 
-        .Achievements and Certifications-grid {
+        .AchievementsandCertifications-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
         }
 
-        .Achievements and Certifications {
+        .AchievementsandCertifications {
             background: white;
             border: 1px solid #ddd;
             border-radius: 8px;
@@ -145,17 +145,17 @@
             transition: transform 0.3s;
         }
 
-        .Achievements and Certifications:hover {
+        .AchievementsandCertifications:hover {
             transform: translateY(-5px);
         }
 
-        .Achievements and Certifications img {
+        .AchievementsandCertifications img, .AchievementsandCertifications video, .AchievementsandCertifications embed {
             width: 100%;
             height: 200px;
             object-fit: cover;
         }
 
-        .Achievements and Certifications-content {
+        .AchievementsandCertifications-content {
             padding: 20px;
         }
 
@@ -235,25 +235,31 @@
         <h2>Projects</h2>
         <div class="projects-grid">
             <div class="project">
-                <img src="https://adabaladeepak.github.io/MYDAILYWORK//300x200" alt="Project 1">
+                <a href="https://adabaladeepak.github.io/MYDAILYWORK/">
+                <img src="portfoliowebsite.png" alt="Project 1">
                 <div class="project-content">
                     <h3>Portfolio Website</h3>
                     <p>A personal portfolio showcasing my skills, projects, and experience as a web developer.</p>
                 </div>
+                </a>
             </div>
             <div class="project">
-                <img src="https://adabaladeepak.github.io/MYDAILYWORK/index2.html/300x200" alt="Project 2">
+                <a href="https://adabaladeepak.github.io/MYDAILYWORK/index2.html">
+                <video src="Onlinequizmaker.mp4" controls width="100%" height="200"></video>
                 <div class="project-content">
                     <h3>Online Quiz Maker</h3>
                     <p>A simple online quiz application allowing users to create and take quizzes on various topics.</p>
                 </div>
+                </a>
             </div>
             <div class="project">
-                <img src="https://adabaladeepak.github.io/MYDAILYWORK/index3.html/300x200" alt="Project 3">
+                <a href="https://adabaladeepak.github.io/MYDAILYWORK/index3.html">
+                <video src="E-commerce.mp4" controls width="100%" height="200"></video>
                 <div class="project-content">
                     <h3>E-Commerce Website</h3>
                     <p>A fully responsive e-commerce site built with HTML, CSS, and JavaScript featuring product filtering and a shopping cart.</p>
                 </div>
+                </a>
             </div>
         </div>
     </section>
@@ -261,20 +267,28 @@
     <!-- Achievements and Certifications -->
     <section id="achievements">
         <h2>🏆Achievements and Certifications</h2>
-        <div class="achievements-grid">
-            <div class="achievement">
-                <h3>AWS Training and Certification  </h3>
-                <p>Introduction to Generative AI - Art of the Possible
-                   Generative AI For Executives</p>
+        <div class="AchievementsandCertifications-grid">
+            <div class="AchievementsandCertifications">
+                <embed src="AWS Skill Builder Course Completion Certificate (Introduction to Gen AI).pdf" type="application/pdf" width="100%" height="200">
+                    <p>Introduction to Generative AI - Art of the Possible</p>
+                <embed src="AWS Skill Builder Course Completion Certificate (Generative AI For Excutives).pdf" type="application/pdf" width="100%" height="200">
+                    <p>Generative AI For Executives</p>
+                <div class="AchievementsandCertifications-content">
+                    <h3>AWS Training and Certification  </h3>
+                </div>
+                </a>
+            </div>
+            <div class="AchievementsandCertifications">
+                <embed src="INFOSYS (Introduction to Data Science).pdf" type="application/pdf" width="100%" height="200">
+                    <p>Introduction to Data Science </p>
+                <embed src="INFOSYS (Introduction to NLP).pdf" type="application/pdf" width="100%" height="200">
+                    <p>Introduction to Natural Language Processing.</p>
+                <div class="AchievementsandCertifications-content">
+                    <h3>Infosys Springboard</h3>
+                </div>
+                </a>
             </div>
         </div>
-            <div class="achievement">
-                <h3>Infosys Springboard</h3>
-                <p>Introduction to Data Science
-                   Introduction to Natural Language Processing.</p>
-            </div>
-        </div>
-    </div>
     </section>
 
     <!-- Resume Section -->
